@@ -1,0 +1,13 @@
+[package]
+name = "winoxide-exec"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Windows PE execution engine — loads, resolves imports, and runs executables"
+
+[dependencies]
+winoxide-types = { path = "../winoxide-types" }
+winoxide-pe = { path = "../winoxide-pe" }
+winoxide-kernel32 = { path = "../winoxide-kernel32" }
+winoxide-msvcrt = { path = "../winoxide-msvcrt" }
+winoxide-registry = { path = "../winoxide-registry" }

@@ -1,0 +1,15 @@
+[package]
+name = "winoxide-wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "WebAssembly bindings for Winoxide PE analyzer"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+winoxide-pe = { path = "../winoxide-pe" }
+wasm-bindgen = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

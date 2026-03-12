@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/winoxide-types",
+    "crates/winoxide-protocol",
+    "crates/winoxide-server",
+    "crates/winoxide-ntdll",
+    "crates/winoxide-pe",
+    "crates/winoxide-registry",
+    "crates/winoxide-kernel32",
+    "crates/winoxide-msvcrt",
+    "crates/winoxide-exec",
+    "crates/winoxide-wasm",
+    "examples/pe-info",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR LGPL-2.1-or-later"
+repository = "https://github.com/user/winoxide"
+
+[workspace.dependencies]
+winoxide-types = { path = "crates/winoxide-types" }
+winoxide-protocol = { path = "crates/winoxide-protocol" }

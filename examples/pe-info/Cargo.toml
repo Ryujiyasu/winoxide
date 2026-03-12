@@ -1,0 +1,13 @@
+[package]
+name = "pe-info"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "pe-info"
+path = "src/main.rs"
+
+[dependencies]
+winoxide-pe = { path = "../../crates/winoxide-pe" }
+winoxide-exec = { path = "../../crates/winoxide-exec" }

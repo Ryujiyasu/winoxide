@@ -1,0 +1,8 @@
+[package]
+name = "winoxide-types"
+description = "Windows NT type definitions for the Winoxide compatibility layer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]

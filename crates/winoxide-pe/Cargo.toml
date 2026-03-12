@@ -1,0 +1,9 @@
+[package]
+name = "winoxide-pe"
+description = "PE/COFF executable parser and loader for Winoxide"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+winoxide-types = { workspace = true }

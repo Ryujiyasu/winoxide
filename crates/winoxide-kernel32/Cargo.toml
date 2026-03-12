@@ -1,0 +1,11 @@
+[package]
+name = "winoxide-kernel32"
+description = "Win32 kernel API (kernel32/kernelbase) for Winoxide"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+winoxide-types = { workspace = true }
+winoxide-registry = { path = "../winoxide-registry" }
+libc = "0.2"

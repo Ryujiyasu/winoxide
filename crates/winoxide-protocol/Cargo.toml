@@ -1,0 +1,9 @@
+[package]
+name = "winoxide-protocol"
+description = "Wine server protocol definitions for Winoxide"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+winoxide-types = { workspace = true }

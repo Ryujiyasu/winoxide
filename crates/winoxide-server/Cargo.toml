@@ -1,0 +1,11 @@
+[package]
+name = "winoxide-server"
+description = "Windows kernel object server for Winoxide"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+winoxide-types = { workspace = true }
+winoxide-protocol = { workspace = true }
+libc = "0.2"

@@ -1,0 +1,11 @@
+[package]
+name = "winoxide-msvcrt"
+description = "Microsoft Visual C Runtime (msvcrt/ucrt) for Winoxide"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+winoxide-types = { workspace = true }
+winoxide-kernel32 = { path = "../winoxide-kernel32" }
+libc = "0.2"

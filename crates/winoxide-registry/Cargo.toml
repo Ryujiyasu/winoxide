@@ -1,0 +1,9 @@
+[package]
+name = "winoxide-registry"
+description = "Windows Registry implementation for Winoxide"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+winoxide-types = { workspace = true }

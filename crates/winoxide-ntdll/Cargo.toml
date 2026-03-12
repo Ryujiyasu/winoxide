@@ -1,0 +1,13 @@
+[package]
+name = "winoxide-ntdll"
+description = "NT system call layer for Winoxide"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+winoxide-types = { workspace = true }
+winoxide-protocol = { workspace = true }
+libc = "0.2"
+
+[dev-dependencies]

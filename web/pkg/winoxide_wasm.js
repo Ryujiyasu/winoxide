@@ -1,7 +1,29 @@
 /* @ts-self-types="./winoxide_wasm.d.ts" */
 
 /**
- * Analyze a PE file and return JSON results.
+ * Run dynamic analysis on a PE file (emulated execution).
+ * max_steps: maximum CPU instructions to emulate (0 = default 50000).
+ * @param {Uint8Array} data
+ * @param {number} max_steps
+ * @returns {string}
+ */
+export function analyze_dynamic(data, max_steps) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.analyze_dynamic(ptr0, len0, max_steps);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+}
+
+/**
+ * Analyze a PE file and return JSON results (static analysis).
  * @param {Uint8Array} data
  * @returns {string}
  */

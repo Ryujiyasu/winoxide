@@ -9,3 +9,5 @@ pub mod api_table;
 pub mod vfs;
 pub mod process_env;
 pub mod engine;
+pub mod emulator;
+pub mod dynamic_analysis;

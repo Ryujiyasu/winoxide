@@ -278,6 +278,87 @@
   .ai-verdict.malicious { background: rgba(239,83,80,0.1); color: var(--red); border: 1px solid rgba(239,83,80,0.3); }
   #ai-analyze-btn:hover { opacity: 0.85; }
   #ai-analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Analysis pipeline */
+  .pipeline {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  .pipeline-stage {
+    flex: 1;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-align: center;
+    font-size: 12px;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .pipeline-stage .stage-num {
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .pipeline-stage .stage-name {
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .pipeline-stage .stage-status {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  .pipeline-stage.active {
+    border-color: var(--accent);
+    background: rgba(79,195,247,0.08);
+  }
+  .pipeline-stage.done {
+    border-color: var(--green);
+  }
+  .pipeline-stage.done .stage-status { color: var(--green); }
+  .pipeline-stage.running .stage-status { color: var(--accent); }
+  .pipeline-stage.warning .stage-status { color: var(--orange); }
+  .pipeline-stage.danger .stage-status { color: var(--red); }
+  .pipeline-arrow {
+    color: var(--dim);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Dynamic analysis */
+  .api-trace-item {
+    display: flex;
+    gap: 12px;
+    padding: 6px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .api-trace-item .step { color: var(--dim); min-width: 50px; }
+  .api-trace-item .api-name { color: var(--accent); font-weight: 600; }
+  .api-trace-item .api-cat {
+    color: var(--dim);
+    font-size: 10px;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: auto;
+  }
+  .behavior-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 3px;
+  }
+  .behavior-tag.danger { background: rgba(239,83,80,0.15); color: var(--red); }
+  .behavior-tag.warning { background: rgba(255,152,0,0.15); color: var(--orange); }
+  .behavior-tag.info { background: rgba(79,195,247,0.15); color: var(--accent); }
+  .behavior-tag.safe { background: rgba(102,187,106,0.15); color: var(--green); }
 </style>
 </head>
 <body>
@@ -300,6 +381,33 @@
   </div>
 
   <div class="results" id="results">
+    <!-- Analysis Pipeline -->
+    <div class="pipeline" id="pipeline">
+      <div class="pipeline-stage" id="stage-static">
+        <div class="stage-num">Stage 1</div>
+        <div class="stage-name">Static Analysis</div>
+        <div class="stage-status" id="stage-static-status">pending</div>
+      </div>
+      <div class="pipeline-arrow">&#x2192;</div>
+      <div class="pipeline-stage" id="stage-safety">
+        <div class="stage-num">Stage 2</div>
+        <div class="stage-name">Safety Check</div>
+        <div class="stage-status" id="stage-safety-status">pending</div>
+      </div>
+      <div class="pipeline-arrow">&#x2192;</div>
+      <div class="pipeline-stage" id="stage-dynamic">
+        <div class="stage-num">Stage 3</div>
+        <div class="stage-name">Dynamic Analysis</div>
+        <div class="stage-status" id="stage-dynamic-status">pending</div>
+      </div>
+      <div class="pipeline-arrow">&#x2192;</div>
+      <div class="pipeline-stage" id="stage-verdict">
+        <div class="stage-num">Final</div>
+        <div class="stage-name">Verdict</div>
+        <div class="stage-status" id="stage-verdict-status">pending</div>
+      </div>
+    </div>
+
     <!-- Risk Assessment -->
     <div class="card" id="risk-card">
       <div class="card-header">RISK ASSESSMENT</div>
@@ -369,6 +477,40 @@
       </div>
     </div>
 
+    <!-- Dynamic Analysis -->
+    <div class="card" id="dynamic-card" style="display:none">
+      <div class="card-header" style="display:flex; justify-content:space-between; width:100%">
+        <span>DYNAMIC ANALYSIS (x86 Emulation)</span>
+        <div style="display:flex; gap:8px; align-items:center">
+          <span id="dynamic-steps" style="color:var(--dim); font-size:12px"></span>
+          <button id="run-dynamic-btn" onclick="runDynamicAnalysis()"
+            style="background:#7c4dff; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap;">
+            Run Sandbox
+          </button>
+        </div>
+      </div>
+      <div class="card-body" id="dynamic-body" style="display:none">
+        <div id="dynamic-loading" style="display:none; text-align:center; padding:20px; color:var(--dim)">
+          <div class="spinner"></div>
+          <div>Emulating x86 execution...</div>
+        </div>
+        <!-- Verdict banner -->
+        <div id="dynamic-verdict-banner" style="display:none; padding:14px 18px; border-radius:6px; margin-bottom:16px; font-weight:700; font-size:15px"></div>
+        <!-- Behavior tags -->
+        <div id="behavior-tags" style="margin-bottom:16px"></div>
+        <!-- API call summary -->
+        <div id="api-summary-section" style="display:none; margin-bottom:16px">
+          <div style="font-size:13px; font-weight:600; margin-bottom:8px; color:var(--accent)">API Call Summary</div>
+          <div id="api-summary-list"></div>
+        </div>
+        <!-- API trace (expandable) -->
+        <details id="api-trace-details" style="margin-bottom:8px">
+          <summary style="font-size:13px; font-weight:600; cursor:pointer; color:var(--accent); margin-bottom:8px">API Call Trace</summary>
+          <div id="api-trace-list" style="max-height:300px; overflow-y:auto; background:var(--code-bg); border-radius:4px"></div>
+        </details>
+      </div>
+    </div>
+
     <!-- Suspicious APIs -->
     <div class="card" id="suspicious-card" style="display:none">
       <div class="card-header" style="color:var(--orange)">SUSPICIOUS API CALLS</div>
@@ -423,7 +565,7 @@
 </div>
 
 <script type="module">
-import init, { analyze_pe } from './pkg/winoxide_wasm.js';
+import init, { analyze_pe, analyze_dynamic } from './pkg/winoxide_wasm.js';
 
 let wasmReady = false;
 
@@ -458,17 +600,22 @@ dropzone.addEventListener('drop', (e) => {
   if (file) processFile(file);
 });
 
+let lastFileData = null;
+
 async function processFile(file) {
   if (!wasmReady) { alert('Wasm engine loading...'); return; }
 
   loading.style.display = 'block';
   results.classList.remove('visible');
+  resetPipeline();
 
   // Read file as array
   const buffer = await file.arrayBuffer();
   const data = new Uint8Array(buffer);
+  lastFileData = data;
 
-  // Analyze via Wasm
+  // Stage 1: Static Analysis
+  updateStage('static', 'running', 'analyzing...');
   const json = analyze_pe(data);
   const analysis = JSON.parse(json);
 
@@ -479,7 +626,63 @@ async function processFile(file) {
     return;
   }
 
+  updateStage('static', 'done', 'complete');
   renderResults(analysis, file.name);
+
+  // Stage 2: Safety Check
+  updateStage('safety', 'running', 'evaluating...');
+  const safeForDynamic = analysis.risk_score <= 80 && analysis.is_runnable;
+  if (safeForDynamic) {
+    updateStage('safety', 'done', 'safe to sandbox');
+    // Auto-run dynamic analysis
+    updateStage('dynamic', 'running', 'emulating...');
+    document.getElementById('dynamic-card').style.display = 'block';
+    document.getElementById('dynamic-body').style.display = 'block';
+    document.getElementById('dynamic-loading').style.display = 'block';
+
+    // Use setTimeout to let UI update before blocking Wasm call
+    setTimeout(() => {
+      const dynJson = analyze_dynamic(data, 50000);
+      const dynResult = JSON.parse(dynJson);
+      document.getElementById('dynamic-loading').style.display = 'none';
+      renderDynamic(dynResult);
+      updateStage('dynamic', 'done', dynResult.steps_executed + ' steps');
+      // Stage 4: Final Verdict
+      const finalVerdict = dynResult.dynamic_risk_score <= 20 ? 'CLEAN' :
+                           dynResult.dynamic_risk_score <= 50 ? 'SUSPICIOUS' : 'MALICIOUS';
+      const verdictClass = finalVerdict === 'CLEAN' ? 'done' :
+                           finalVerdict === 'SUSPICIOUS' ? 'warning' : 'danger';
+      updateStage('verdict', verdictClass, finalVerdict);
+    }, 50);
+  } else {
+    if (analysis.risk_score > 80) {
+      updateStage('safety', 'danger', 'HIGH RISK');
+      updateStage('dynamic', 'warning', 'too risky');
+      updateStage('verdict', 'danger', 'LIKELY MALICIOUS');
+    } else {
+      updateStage('safety', 'warning', 'missing DLLs');
+      updateStage('dynamic', 'warning', 'skipped');
+      updateStage('verdict', 'warning', 'INCOMPLETE');
+    }
+    // Still show dynamic analysis button for manual trigger
+    document.getElementById('dynamic-card').style.display = 'block';
+    document.getElementById('dynamic-body').style.display = 'none';
+  }
+}
+
+function resetPipeline() {
+  for (const id of ['static', 'safety', 'dynamic', 'verdict']) {
+    const el = document.getElementById('stage-' + id);
+    el.className = 'pipeline-stage';
+    document.getElementById('stage-' + id + '-status').textContent = 'pending';
+  }
+  document.getElementById('dynamic-card').style.display = 'none';
+}
+
+function updateStage(id, cls, status) {
+  const el = document.getElementById('stage-' + id);
+  el.className = 'pipeline-stage ' + cls;
+  document.getElementById('stage-' + id + '-status').textContent = status;
 }
 
 function renderResults(a, filename) {
@@ -608,6 +811,107 @@ function formatSize(bytes) {
   if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
   return (bytes/1024/1024).toFixed(1) + ' MB';
 }
+
+// ===== Dynamic Analysis Rendering =====
+function renderDynamic(d) {
+  // Verdict banner
+  const banner = document.getElementById('dynamic-verdict-banner');
+  banner.style.display = 'block';
+  banner.textContent = d.verdict + ` (confidence: ${d.confidence}%)`;
+  if (d.dynamic_risk_score <= 20) {
+    banner.style.background = 'rgba(102,187,106,0.1)';
+    banner.style.color = 'var(--green)';
+    banner.style.border = '1px solid rgba(102,187,106,0.3)';
+  } else if (d.dynamic_risk_score <= 50) {
+    banner.style.background = 'rgba(255,152,0,0.1)';
+    banner.style.color = 'var(--orange)';
+    banner.style.border = '1px solid rgba(255,152,0,0.3)';
+  } else {
+    banner.style.background = 'rgba(239,83,80,0.1)';
+    banner.style.color = 'var(--red)';
+    banner.style.border = '1px solid rgba(239,83,80,0.3)';
+  }
+
+  // Steps info
+  document.getElementById('dynamic-steps').textContent =
+    `${d.steps_executed.toLocaleString()} steps | ${d.api_calls.length} API calls | ${d.stop_reason}`;
+
+  // Behavior tags
+  const tags = document.getElementById('behavior-tags');
+  tags.innerHTML = '';
+  const b = d.behavior;
+  if (b.process_injection) tags.innerHTML += '<span class="behavior-tag danger">Process Injection</span>';
+  if (b.anti_debug) tags.innerHTML += '<span class="behavior-tag warning">Anti-Debug</span>';
+  if (b.network_activity) tags.innerHTML += '<span class="behavior-tag danger">Network Activity</span>';
+  if (b.crypto_operations) tags.innerHTML += '<span class="behavior-tag warning">Crypto Operations</span>';
+  if (b.self_modifying_code) tags.innerHTML += '<span class="behavior-tag danger">Self-Modifying Code</span>';
+  if (b.dynamic_api_resolution) tags.innerHTML += '<span class="behavior-tag warning">Dynamic API Resolution</span>';
+  if (b.file_operations.length > 0) tags.innerHTML += '<span class="behavior-tag info">File I/O (' + b.file_operations.length + ')</span>';
+  if (b.registry_operations.length > 0) tags.innerHTML += '<span class="behavior-tag warning">Registry (' + b.registry_operations.length + ')</span>';
+  if (!b.process_injection && !b.network_activity && !b.crypto_operations && !b.self_modifying_code) {
+    tags.innerHTML += '<span class="behavior-tag safe">No Malicious Patterns</span>';
+  }
+
+  // API summary
+  if (d.api_summary.length > 0) {
+    const summarySection = document.getElementById('api-summary-section');
+    summarySection.style.display = 'block';
+    const summaryList = document.getElementById('api-summary-list');
+    summaryList.innerHTML = '';
+    for (const s of d.api_summary.slice(0, 20)) {
+      summaryList.innerHTML += `<div class="api-trace-item">
+        <span class="api-name">${s.api}</span>
+        <span class="api-cat">${s.category}</span>
+        <span style="color:var(--dim); margin-left:8px">x${s.count}</span>
+      </div>`;
+    }
+  }
+
+  // API trace
+  if (d.api_calls.length > 0) {
+    const traceList = document.getElementById('api-trace-list');
+    traceList.innerHTML = '';
+    for (const c of d.api_calls.slice(0, 200)) {
+      traceList.innerHTML += `<div class="api-trace-item">
+        <span class="step">#${c.step}</span>
+        <span style="color:var(--dim); font-size:11px">${c.call_site}</span>
+        <span class="api-name">${c.dll}!${c.function}</span>
+      </div>`;
+    }
+    if (d.api_calls.length > 200) {
+      traceList.innerHTML += `<div class="api-trace-item" style="color:var(--dim)">... and ${d.api_calls.length - 200} more calls</div>`;
+    }
+  }
+}
+
+// Manual dynamic analysis trigger
+window.runDynamicAnalysis = function() {
+  if (!lastFileData) return;
+  const btn = document.getElementById('run-dynamic-btn');
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  document.getElementById('dynamic-body').style.display = 'block';
+  document.getElementById('dynamic-loading').style.display = 'block';
+
+  updateStage('dynamic', 'running', 'emulating...');
+
+  setTimeout(() => {
+    const dynJson = analyze_dynamic(lastFileData, 50000);
+    const dynResult = JSON.parse(dynJson);
+    document.getElementById('dynamic-loading').style.display = 'none';
+    renderDynamic(dynResult);
+    updateStage('dynamic', 'done', dynResult.steps_executed + ' steps');
+
+    const finalVerdict = dynResult.dynamic_risk_score <= 20 ? 'CLEAN' :
+                         dynResult.dynamic_risk_score <= 50 ? 'SUSPICIOUS' : 'MALICIOUS';
+    const verdictClass = finalVerdict === 'CLEAN' ? 'done' :
+                         finalVerdict === 'SUSPICIOUS' ? 'warning' : 'danger';
+    updateStage('verdict', verdictClass, finalVerdict);
+
+    btn.disabled = false;
+    btn.textContent = 'Re-run Sandbox';
+  }, 50);
+};
 
 // ===== Google OAuth for Gemini =====
 let googleAccessToken = null;

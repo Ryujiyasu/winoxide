@@ -2,7 +2,13 @@
 /* eslint-disable */
 
 /**
- * Analyze a PE file and return JSON results.
+ * Run dynamic analysis on a PE file (emulated execution).
+ * max_steps: maximum CPU instructions to emulate (0 = default 50000).
+ */
+export function analyze_dynamic(data: Uint8Array, max_steps: number): string;
+
+/**
+ * Analyze a PE file and return JSON results (static analysis).
  */
 export function analyze_pe(data: Uint8Array): string;
 
@@ -10,6 +16,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly analyze_dynamic: (a: number, b: number, c: number) => [number, number];
     readonly analyze_pe: (a: number, b: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;

@@ -179,6 +179,7 @@ dependencies = [
 name = "winoxide-exec"
 version = "0.1.0"
 dependencies = [
+ "serde",
  "winoxide-kernel32",
  "winoxide-msvcrt",
  "winoxide-pe",
@@ -254,6 +255,7 @@ dependencies = [
  "serde",
  "serde_json",
  "wasm-bindgen",
+ "winoxide-exec",
  "winoxide-pe",
 ]
 

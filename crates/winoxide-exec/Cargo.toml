@@ -5,9 +5,14 @@ edition.workspace = true
 license.workspace = true
 description = "Windows PE execution engine — loads, resolves imports, and runs executables"
 
+[features]
+default = ["native"]
+native = ["winoxide-kernel32", "winoxide-msvcrt", "winoxide-registry"]
+
 [dependencies]
 winoxide-types = { path = "../winoxide-types" }
 winoxide-pe = { path = "../winoxide-pe" }
-winoxide-kernel32 = { path = "../winoxide-kernel32" }
-winoxide-msvcrt = { path = "../winoxide-msvcrt" }
-winoxide-registry = { path = "../winoxide-registry" }
+serde = { version = "1", features = ["derive"] }
+winoxide-kernel32 = { path = "../winoxide-kernel32", optional = true }
+winoxide-msvcrt = { path = "../winoxide-msvcrt", optional = true }
+winoxide-registry = { path = "../winoxide-registry", optional = true }

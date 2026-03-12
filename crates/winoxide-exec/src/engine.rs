@@ -138,6 +138,7 @@ impl Engine {
     }
 
     /// Load a PE file from disk.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn load_file(&mut self, path: &str) -> Result<LoadResult, String> {
         let data = std::fs::read(path).map_err(|e| format!("read error: {}", e))?;
         self.load_pe(data)

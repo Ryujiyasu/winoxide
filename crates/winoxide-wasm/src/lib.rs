@@ -8,10 +8,19 @@ use winoxide_pe::imports::{parse_imports, ImportFunction};
 use winoxide_pe::exports::parse_exports;
 use std::collections::HashSet;
 
-/// Analyze a PE file and return JSON results.
+/// Analyze a PE file and return JSON results (static analysis).
 #[wasm_bindgen]
 pub fn analyze_pe(data: &[u8]) -> String {
     let result = analyze_pe_inner(data);
+    serde_json::to_string_pretty(&result).unwrap_or_else(|_| "{}".to_string())
+}
+
+/// Run dynamic analysis on a PE file (emulated execution).
+/// max_steps: maximum CPU instructions to emulate (0 = default 50000).
+#[wasm_bindgen]
+pub fn analyze_dynamic(data: &[u8], max_steps: u32) -> String {
+    let steps = if max_steps == 0 { 50_000 } else { max_steps as u64 };
+    let result = winoxide_exec::dynamic_analysis::analyze_dynamic(data, steps);
     serde_json::to_string_pretty(&result).unwrap_or_else(|_| "{}".to_string())
 }
 

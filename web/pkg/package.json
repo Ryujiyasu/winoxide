@@ -1,0 +1,17 @@
+{
+  "name": "winoxide-wasm",
+  "type": "module",
+  "description": "WebAssembly bindings for Winoxide PE analyzer",
+  "version": "0.1.0",
+  "license": "MIT OR LGPL-2.1-or-later",
+  "files": [
+    "winoxide_wasm_bg.wasm",
+    "winoxide_wasm.js",
+    "winoxide_wasm.d.ts"
+  ],
+  "main": "winoxide_wasm.js",
+  "types": "winoxide_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

@@ -50,6 +50,32 @@
     font-size: 11px;
     font-weight: 700;
   }
+  .lang-switcher {
+    margin-left: auto;
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .lang-btn {
+    background: none;
+    border: none;
+    color: var(--dim);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .lang-btn:hover { color: var(--text); }
+  .lang-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+  }
   .container { max-width: 1200px; margin: 0 auto; padding: 24px 32px; }
 
   /* Drop zone */
@@ -408,65 +434,71 @@
 <div class="header">
   <h1>WINOXIDE</h1>
   <span class="badge">WASM</span>
-  <span class="subtitle">PE Malware Analyzer — Powered by Rust + WebAssembly</span>
+  <span class="subtitle" data-i18n="subtitle">PE Malware Analyzer — Powered by Rust + WebAssembly</span>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('ja')">JA</button>
+    <button class="lang-btn" onclick="setLang('zh')">ZH</button>
+    <button class="lang-btn" onclick="setLang('ko')">KO</button>
+  </div>
 </div>
 
 <div class="container">
   <div class="dropzone" id="dropzone">
     <div class="icon">&#x1F50D;</div>
-    <h2>Drop a Windows executable here</h2>
-    <p>.exe or .dll files — analysis runs entirely in your browser (no upload)</p>
+    <h2 data-i18n="drop_title">Drop a Windows executable here</h2>
+    <p data-i18n="drop_desc">.exe or .dll files — analysis runs entirely in your browser (no upload)</p>
   </div>
 
   <div class="samples">
-    <span class="label">Test samples:</span>
+    <span class="label" data-i18n="test_samples">Test samples:</span>
     <button class="sample-btn" onclick="loadSample('hello.exe')">
-      hello.exe <span class="tag clean">clean</span>
+      hello.exe <span class="tag clean" data-i18n="tag_clean">clean</span>
     </button>
     <button class="sample-btn" onclick="loadSample('suspicious.exe')">
-      suspicious.exe <span class="tag suspicious">malware</span>
+      suspicious.exe <span class="tag suspicious" data-i18n="tag_malware">malware</span>
     </button>
     <button class="sample-btn" onclick="loadSample('clean.dll')">
-      clean.dll <span class="tag benign">benign</span>
+      clean.dll <span class="tag benign" data-i18n="tag_benign">benign</span>
     </button>
   </div>
 
   <div class="loading" id="loading" style="display:none">
     <div class="spinner"></div>
-    <div>Analyzing PE structure...</div>
+    <div data-i18n="analyzing">Analyzing PE structure...</div>
   </div>
 
   <div class="results" id="results">
     <!-- Analysis Pipeline -->
     <div class="pipeline" id="pipeline">
       <div class="pipeline-stage" id="stage-static">
-        <div class="stage-num">Stage 1</div>
-        <div class="stage-name">Static Analysis</div>
-        <div class="stage-status" id="stage-static-status">pending</div>
+        <div class="stage-num" data-i18n="stage1">Stage 1</div>
+        <div class="stage-name" data-i18n="static_analysis">Static Analysis</div>
+        <div class="stage-status" id="stage-static-status" data-i18n="pending">pending</div>
       </div>
       <div class="pipeline-arrow">&#x2192;</div>
       <div class="pipeline-stage" id="stage-safety">
-        <div class="stage-num">Stage 2</div>
-        <div class="stage-name">Safety Check</div>
-        <div class="stage-status" id="stage-safety-status">pending</div>
+        <div class="stage-num" data-i18n="stage2">Stage 2</div>
+        <div class="stage-name" data-i18n="safety_check">Safety Check</div>
+        <div class="stage-status" id="stage-safety-status" data-i18n="pending">pending</div>
       </div>
       <div class="pipeline-arrow">&#x2192;</div>
       <div class="pipeline-stage" id="stage-dynamic">
-        <div class="stage-num">Stage 3</div>
-        <div class="stage-name">Dynamic Analysis</div>
-        <div class="stage-status" id="stage-dynamic-status">pending</div>
+        <div class="stage-num" data-i18n="stage3">Stage 3</div>
+        <div class="stage-name" data-i18n="dynamic_analysis">Dynamic Analysis</div>
+        <div class="stage-status" id="stage-dynamic-status" data-i18n="pending">pending</div>
       </div>
       <div class="pipeline-arrow">&#x2192;</div>
       <div class="pipeline-stage" id="stage-verdict">
-        <div class="stage-num">Final</div>
-        <div class="stage-name">Verdict</div>
-        <div class="stage-status" id="stage-verdict-status">pending</div>
+        <div class="stage-num" data-i18n="final">Final</div>
+        <div class="stage-name" data-i18n="verdict">Verdict</div>
+        <div class="stage-status" id="stage-verdict-status" data-i18n="pending">pending</div>
       </div>
     </div>
 
     <!-- Risk Assessment -->
     <div class="card" id="risk-card">
-      <div class="card-header">RISK ASSESSMENT</div>
+      <div class="card-header" data-i18n="risk_assessment">RISK ASSESSMENT</div>
       <div class="card-body">
         <div class="risk-meter" id="risk-meter">
           <div class="risk-score" id="risk-score">0</div>
@@ -485,7 +517,7 @@
 
     <!-- File Info -->
     <div class="card">
-      <div class="card-header">FILE INFORMATION</div>
+      <div class="card-header" data-i18n="file_info">FILE INFORMATION</div>
       <div class="card-body">
         <div class="info-grid" id="info-grid"></div>
       </div>
@@ -494,32 +526,34 @@
     <!-- AI Analysis -->
     <div class="card" id="ai-card">
       <div class="card-header" style="display:flex; justify-content:space-between; width:100%; flex-wrap:wrap; gap:8px">
-        <span>AI THREAT ANALYSIS</span>
+        <span data-i18n="ai_threat">AI THREAT ANALYSIS</span>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
           <!-- Google Sign-In status -->
           <div id="google-auth-area" style="display:flex; gap:8px; align-items:center">
             <button id="google-signin-btn" onclick="googleSignIn()"
               style="background:#4285f4; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; display:flex; align-items:center; gap:6px">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-              Sign in with Google
+              <span data-i18n="sign_in_google">Sign in with Google</span>
             </button>
             <span id="google-user" style="display:none; font-size:12px; color:var(--green)"></span>
-            <button id="google-signout-btn" onclick="googleSignOut()" style="display:none; background:none; border:1px solid var(--border); color:var(--dim); padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-family:inherit">Sign out</button>
+            <button id="google-signout-btn" onclick="googleSignOut()" style="display:none; background:none; border:1px solid var(--border); color:var(--dim); padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-family:inherit" data-i18n="sign_out">Sign out</button>
           </div>
           <!-- Fallback: manual API key -->
           <details id="apikey-fallback" style="font-size:12px">
-            <summary style="color:var(--dim); cursor:pointer">or use API key</summary>
+            <summary style="color:var(--dim); cursor:pointer" data-i18n="or_api_key">or use API key</summary>
             <div style="margin-top:6px; display:flex; gap:6px">
               <input type="password" id="gemini-key" placeholder="Gemini API Key"
                 style="background:var(--code-bg); border:1px solid var(--border); color:var(--text); padding:4px 8px; border-radius:4px; font-size:11px; width:200px; font-family:inherit;">
             </div>
           </details>
           <button id="ai-analyze-btn" onclick="runAiAnalysis()"
-            style="background:var(--accent); color:var(--bg); border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap;">
+            style="background:var(--accent); color:var(--bg); border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap;"
+            data-i18n="analyze_gemini">
             Analyze with Gemini
           </button>
           <button onclick="copyForAi()"
-            style="background:var(--code-bg); color:var(--dim); border:1px solid var(--border); padding:6px 14px; border-radius:4px; font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap;">
+            style="background:var(--code-bg); color:var(--dim); border:1px solid var(--border); padding:6px 14px; border-radius:4px; font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap;"
+            data-i18n="copy_prompt">
             Copy Prompt
           </button>
         </div>
@@ -527,7 +561,7 @@
       <div class="card-body" id="ai-result" style="display:none">
         <div id="ai-loading" style="display:none; text-align:center; padding:20px; color:var(--dim)">
           <div class="spinner"></div>
-          <div>Gemini is analyzing the threat...</div>
+          <div data-i18n="gemini_analyzing">Gemini is analyzing the threat...</div>
         </div>
         <div id="ai-output" style="white-space:pre-wrap; font-size:13px; line-height:1.6"></div>
       </div>
@@ -536,11 +570,12 @@
     <!-- Dynamic Analysis -->
     <div class="card" id="dynamic-card" style="display:none">
       <div class="card-header" style="display:flex; justify-content:space-between; width:100%">
-        <span>DYNAMIC ANALYSIS (x86 Emulation)</span>
+        <span data-i18n="dynamic_x86">DYNAMIC ANALYSIS (x86 Emulation)</span>
         <div style="display:flex; gap:8px; align-items:center">
           <span id="dynamic-steps" style="color:var(--dim); font-size:12px"></span>
           <button id="run-dynamic-btn" onclick="runDynamicAnalysis()"
-            style="background:#7c4dff; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap;">
+            style="background:#7c4dff; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap;"
+            data-i18n="run_sandbox">
             Run Sandbox
           </button>
         </div>
@@ -548,7 +583,7 @@
       <div class="card-body" id="dynamic-body" style="display:none">
         <div id="dynamic-loading" style="display:none; text-align:center; padding:20px; color:var(--dim)">
           <div class="spinner"></div>
-          <div>Emulating x86 execution...</div>
+          <div data-i18n="emulating">Emulating x86 execution...</div>
         </div>
         <!-- Verdict banner -->
         <div id="dynamic-verdict-banner" style="display:none; padding:14px 18px; border-radius:6px; margin-bottom:16px; font-weight:700; font-size:15px"></div>
@@ -556,12 +591,12 @@
         <div id="behavior-tags" style="margin-bottom:16px"></div>
         <!-- API call summary -->
         <div id="api-summary-section" style="display:none; margin-bottom:16px">
-          <div style="font-size:13px; font-weight:600; margin-bottom:8px; color:var(--accent)">API Call Summary</div>
+          <div style="font-size:13px; font-weight:600; margin-bottom:8px; color:var(--accent)" data-i18n="api_summary">API Call Summary</div>
           <div id="api-summary-list"></div>
         </div>
         <!-- API trace (expandable) -->
         <details id="api-trace-details" style="margin-bottom:8px">
-          <summary style="font-size:13px; font-weight:600; cursor:pointer; color:var(--accent); margin-bottom:8px">API Call Trace</summary>
+          <summary style="font-size:13px; font-weight:600; cursor:pointer; color:var(--accent); margin-bottom:8px" data-i18n="api_trace">API Call Trace</summary>
           <div id="api-trace-list" style="max-height:300px; overflow-y:auto; background:var(--code-bg); border-radius:4px"></div>
         </details>
       </div>
@@ -569,13 +604,13 @@
 
     <!-- Suspicious APIs -->
     <div class="card" id="suspicious-card" style="display:none">
-      <div class="card-header" style="color:var(--orange)">SUSPICIOUS API CALLS</div>
+      <div class="card-header" style="color:var(--orange)" data-i18n="suspicious_apis">SUSPICIOUS API CALLS</div>
       <div class="card-body" id="suspicious-list" style="padding:0"></div>
     </div>
 
     <!-- Coverage -->
     <div class="card">
-      <div class="card-header">WINOXIDE COVERAGE</div>
+      <div class="card-header" data-i18n="coverage">WINOXIDE COVERAGE</div>
       <div class="card-body">
         <div style="display:flex; justify-content:space-between; align-items:center">
           <span id="coverage-text"></span>
@@ -589,12 +624,12 @@
 
     <!-- Sections -->
     <div class="card">
-      <div class="card-header">SECTIONS</div>
+      <div class="card-header" data-i18n="sections">SECTIONS</div>
       <div class="card-body" style="padding:0; overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Name</th><th>Virtual Addr</th><th>Virtual Size</th>
-            <th>Raw Size</th><th>Flags</th><th>Status</th>
+            <th data-i18n="th_name">Name</th><th data-i18n="th_vaddr">Virtual Addr</th><th data-i18n="th_vsize">Virtual Size</th>
+            <th data-i18n="th_rsize">Raw Size</th><th data-i18n="th_flags">Flags</th><th data-i18n="th_status">Status</th>
           </tr></thead>
           <tbody id="sections-tbody"></tbody>
         </table>
@@ -603,16 +638,16 @@
 
     <!-- Imports -->
     <div class="card">
-      <div class="card-header">IMPORTS <span id="import-summary" style="color:var(--dim); font-weight:400; font-size:12px; margin-left:8px"></span></div>
+      <div class="card-header" data-i18n="imports">IMPORTS <span id="import-summary" style="color:var(--dim); font-weight:400; font-size:12px; margin-left:8px"></span></div>
       <div class="card-body" id="imports-list" style="padding:0"></div>
     </div>
 
     <!-- Exports -->
     <div class="card" id="exports-card" style="display:none">
-      <div class="card-header">EXPORTS</div>
+      <div class="card-header" data-i18n="exports">EXPORTS</div>
       <div class="card-body" style="padding:0; overflow-x:auto">
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>RVA</th></tr></thead>
+          <thead><tr><th>#</th><th data-i18n="th_name">Name</th><th>RVA</th></tr></thead>
           <tbody id="exports-tbody"></tbody>
         </table>
       </div>
@@ -623,6 +658,381 @@
 <script type="module">
 import init, { analyze_pe, analyze_dynamic } from './pkg/winoxide_wasm.js';
 
+// ===== i18n =====
+const I18N = {
+  en: {
+    subtitle: 'PE Malware Analyzer — Powered by Rust + WebAssembly',
+    drop_title: 'Drop a Windows executable here',
+    drop_desc: '.exe or .dll files — analysis runs entirely in your browser (no upload)',
+    test_samples: 'Test samples:',
+    tag_clean: 'clean',
+    tag_malware: 'malware',
+    tag_benign: 'benign',
+    analyzing: 'Analyzing PE structure...',
+    stage1: 'Stage 1', stage2: 'Stage 2', stage3: 'Stage 3', final: 'Final',
+    static_analysis: 'Static Analysis',
+    safety_check: 'Safety Check',
+    dynamic_analysis: 'Dynamic Analysis',
+    verdict: 'Verdict',
+    pending: 'pending',
+    risk_assessment: 'RISK ASSESSMENT',
+    file_info: 'FILE INFORMATION',
+    ai_threat: 'AI THREAT ANALYSIS',
+    sign_in_google: 'Sign in with Google',
+    sign_out: 'Sign out',
+    or_api_key: 'or use API key',
+    analyze_gemini: 'Analyze with Gemini',
+    copy_prompt: 'Copy Prompt',
+    gemini_analyzing: 'Gemini is analyzing the threat...',
+    dynamic_x86: 'DYNAMIC ANALYSIS (x86 Emulation)',
+    run_sandbox: 'Run Sandbox',
+    emulating: 'Emulating x86 execution...',
+    api_summary: 'API Call Summary',
+    api_trace: 'API Call Trace',
+    suspicious_apis: 'SUSPICIOUS API CALLS',
+    coverage: 'WINOXIDE COVERAGE',
+    sections: 'SECTIONS',
+    imports: 'IMPORTS',
+    exports: 'EXPORTS',
+    th_name: 'Name', th_vaddr: 'Virtual Addr', th_vsize: 'Virtual Size',
+    th_rsize: 'Raw Size', th_flags: 'Flags', th_status: 'Status',
+    // Dynamic strings
+    analyzing_status: 'analyzing...',
+    complete: 'complete',
+    evaluating: 'evaluating...',
+    safe_to_sandbox: 'safe to sandbox',
+    emulating_status: 'emulating...',
+    high_risk: 'HIGH RISK',
+    too_risky: 'too risky',
+    likely_malicious: 'LIKELY MALICIOUS',
+    missing_dlls: 'missing DLLs',
+    skipped: 'skipped',
+    incomplete: 'INCOMPLETE',
+    suspicious_detected: '{n} suspicious API(s) detected',
+    filename: 'Filename', size: 'Size', machine: 'Machine', type: 'Type',
+    bitness: 'Bitness', subsystem: 'Subsystem', entry_point: 'Entry Point',
+    image_size: 'Image Size',
+    n_sections: 'Sections', n_imports: 'Imports', n_exports: 'Exports',
+    funcs_from_dlls: '{f} functions from {d} DLLs',
+    n_functions: '{n} functions',
+    resolved: '{r}/{t} functions resolved ({p}%)',
+    runnable: 'RUNNABLE', partial: 'PARTIAL',
+    suspicious_label: 'Suspicious',
+    by_ordinal: '(by ordinal)',
+    and_more: '... and {n} more',
+    dlls_funcs_summary: '{d} DLLs, {f} functions',
+    confidence: 'confidence',
+    steps_info: '{s} steps | {a} API calls | {r}',
+    process_injection: 'Process Injection',
+    anti_debug: 'Anti-Debug',
+    network_activity: 'Network Activity',
+    crypto_operations: 'Crypto Operations',
+    self_modifying: 'Self-Modifying Code',
+    dynamic_api: 'Dynamic API Resolution',
+    file_io: 'File I/O ({n})',
+    registry: 'Registry ({n})',
+    no_malicious: 'No Malicious Patterns',
+    running: 'Running...',
+    rerun_sandbox: 'Re-run Sandbox',
+    wasm_loading: 'Wasm engine loading...',
+    not_valid_pe: 'Not a valid PE file: {e}',
+    sign_in_or_key: 'Sign in with Google or enter a Gemini API key to use AI analysis',
+    session_expired: 'Google session expired. Please sign in again.',
+    api_error: 'API error {s}: {e}',
+    copied: 'Copied!',
+    google_setup: 'Enter your Google Cloud OAuth Client ID\n\nSetup steps:\n1. Go to console.cloud.google.com\n2. Create OAuth 2.0 Client ID (Web application)\n3. Add this page URL as Authorized JavaScript Origin\n4. Enable "Generative Language API"\n5. Paste the Client ID below',
+    signed_in: 'Signed in',
+    load_failed: 'Failed to load sample: {e}',
+  },
+  ja: {
+    subtitle: 'PEマルウェア解析ツール — Rust + WebAssembly',
+    drop_title: 'Windows実行ファイルをドロップ',
+    drop_desc: '.exe / .dll ファイル対応 — ブラウザ内で完結（アップロード不要）',
+    test_samples: 'テストサンプル:',
+    tag_clean: '正常',
+    tag_malware: 'マルウェア',
+    tag_benign: '無害',
+    analyzing: 'PE構造を解析中...',
+    stage1: 'ステージ1', stage2: 'ステージ2', stage3: 'ステージ3', final: '最終',
+    static_analysis: '静的解析',
+    safety_check: '安全性チェック',
+    dynamic_analysis: '動的解析',
+    verdict: '判定',
+    pending: '待機中',
+    risk_assessment: 'リスク評価',
+    file_info: 'ファイル情報',
+    ai_threat: 'AI脅威分析',
+    sign_in_google: 'Googleでログイン',
+    sign_out: 'ログアウト',
+    or_api_key: 'またはAPIキー',
+    analyze_gemini: 'Geminiで分析',
+    copy_prompt: 'プロンプトをコピー',
+    gemini_analyzing: 'Geminiが脅威を分析中...',
+    dynamic_x86: '動的解析 (x86エミュレーション)',
+    run_sandbox: 'サンドボックス実行',
+    emulating: 'x86実行をエミュレート中...',
+    api_summary: 'API呼び出しサマリー',
+    api_trace: 'API呼び出しトレース',
+    suspicious_apis: '不審なAPI呼び出し',
+    coverage: 'WINOXIDE カバレッジ',
+    sections: 'セクション',
+    imports: 'インポート',
+    exports: 'エクスポート',
+    th_name: '名前', th_vaddr: '仮想アドレス', th_vsize: '仮想サイズ',
+    th_rsize: '実サイズ', th_flags: 'フラグ', th_status: '状態',
+    analyzing_status: '解析中...',
+    complete: '完了',
+    evaluating: '評価中...',
+    safe_to_sandbox: 'サンドボックス可',
+    emulating_status: 'エミュレート中...',
+    high_risk: '高リスク',
+    too_risky: 'リスク過大',
+    likely_malicious: 'マルウェアの可能性大',
+    missing_dlls: 'DLL不足',
+    skipped: 'スキップ',
+    incomplete: '不完全',
+    suspicious_detected: '不審なAPI {n}件 検出',
+    filename: 'ファイル名', size: 'サイズ', machine: 'マシン', type: '種別',
+    bitness: 'ビット数', subsystem: 'サブシステム', entry_point: 'エントリポイント',
+    image_size: 'イメージサイズ',
+    n_sections: 'セクション', n_imports: 'インポート', n_exports: 'エクスポート',
+    funcs_from_dlls: '{d}個のDLLから{f}関数',
+    n_functions: '{n}関数',
+    resolved: '{r}/{t} 関数解決済み ({p}%)',
+    runnable: '実行可能', partial: '部分的',
+    suspicious_label: '不審',
+    by_ordinal: '(序数)',
+    and_more: '... 他{n}件',
+    dlls_funcs_summary: '{d} DLL, {f} 関数',
+    confidence: '信頼度',
+    steps_info: '{s}ステップ | {a} API呼び出し | {r}',
+    process_injection: 'プロセスインジェクション',
+    anti_debug: 'アンチデバッグ',
+    network_activity: 'ネットワーク活動',
+    crypto_operations: '暗号操作',
+    self_modifying: '自己書き換え',
+    dynamic_api: '動的API解決',
+    file_io: 'ファイルI/O ({n})',
+    registry: 'レジストリ ({n})',
+    no_malicious: '悪性パターンなし',
+    running: '実行中...',
+    rerun_sandbox: '再実行',
+    wasm_loading: 'Wasmエンジン読込中...',
+    not_valid_pe: '有効なPEファイルではありません: {e}',
+    sign_in_or_key: 'GoogleログインまたはGemini APIキーを入力してください',
+    session_expired: 'Googleセッションが期限切れです。再ログインしてください。',
+    api_error: 'APIエラー {s}: {e}',
+    copied: 'コピーしました！',
+    google_setup: 'Google Cloud OAuth Client IDを入力してください\n\n手順:\n1. console.cloud.google.com にアクセス\n2. OAuth 2.0 クライアントID (ウェブアプリケーション) を作成\n3. このページのURLを承認済みJavaScriptオリジンに追加\n4. 「Generative Language API」を有効化\n5. クライアントIDを下に貼り付け',
+    signed_in: 'ログイン済み',
+    load_failed: 'サンプルの読み込みに失敗: {e}',
+  },
+  zh: {
+    subtitle: 'PE恶意软件分析器 — 基于Rust + WebAssembly',
+    drop_title: '拖放Windows可执行文件到此处',
+    drop_desc: '支持.exe/.dll文件 — 分析完全在浏览器中运行（无需上传）',
+    test_samples: '测试样本:',
+    tag_clean: '正常',
+    tag_malware: '恶意',
+    tag_benign: '无害',
+    analyzing: '正在分析PE结构...',
+    stage1: '阶段1', stage2: '阶段2', stage3: '阶段3', final: '最终',
+    static_analysis: '静态分析',
+    safety_check: '安全检查',
+    dynamic_analysis: '动态分析',
+    verdict: '判定',
+    pending: '等待中',
+    risk_assessment: '风险评估',
+    file_info: '文件信息',
+    ai_threat: 'AI威胁分析',
+    sign_in_google: '使用Google登录',
+    sign_out: '退出',
+    or_api_key: '或使用API密钥',
+    analyze_gemini: '使用Gemini分析',
+    copy_prompt: '复制提示词',
+    gemini_analyzing: 'Gemini正在分析威胁...',
+    dynamic_x86: '动态分析 (x86仿真)',
+    run_sandbox: '运行沙箱',
+    emulating: '正在仿真x86执行...',
+    api_summary: 'API调用摘要',
+    api_trace: 'API调用跟踪',
+    suspicious_apis: '可疑API调用',
+    coverage: 'WINOXIDE 覆盖率',
+    sections: '节区',
+    imports: '导入',
+    exports: '导出',
+    th_name: '名称', th_vaddr: '虚拟地址', th_vsize: '虚拟大小',
+    th_rsize: '实际大小', th_flags: '标志', th_status: '状态',
+    analyzing_status: '分析中...',
+    complete: '完成',
+    evaluating: '评估中...',
+    safe_to_sandbox: '可安全沙箱化',
+    emulating_status: '仿真中...',
+    high_risk: '高风险',
+    too_risky: '风险过高',
+    likely_malicious: '可能为恶意软件',
+    missing_dlls: '缺少DLL',
+    skipped: '已跳过',
+    incomplete: '不完整',
+    suspicious_detected: '检测到{n}个可疑API',
+    filename: '文件名', size: '大小', machine: '机器', type: '类型',
+    bitness: '位数', subsystem: '子系统', entry_point: '入口点',
+    image_size: '映像大小',
+    n_sections: '节区', n_imports: '导入', n_exports: '导出',
+    funcs_from_dlls: '来自{d}个DLL的{f}个函数',
+    n_functions: '{n}个函数',
+    resolved: '{r}/{t} 函数已解析 ({p}%)',
+    runnable: '可执行', partial: '部分',
+    suspicious_label: '可疑',
+    by_ordinal: '(按序号)',
+    and_more: '... 另外{n}个',
+    dlls_funcs_summary: '{d}个DLL, {f}个函数',
+    confidence: '置信度',
+    steps_info: '{s}步 | {a}个API调用 | {r}',
+    process_injection: '进程注入',
+    anti_debug: '反调试',
+    network_activity: '网络活动',
+    crypto_operations: '加密操作',
+    self_modifying: '自修改代码',
+    dynamic_api: '动态API解析',
+    file_io: '文件I/O ({n})',
+    registry: '注册表 ({n})',
+    no_malicious: '未发现恶意模式',
+    running: '运行中...',
+    rerun_sandbox: '重新运行',
+    wasm_loading: 'Wasm引擎加载中...',
+    not_valid_pe: '无效的PE文件: {e}',
+    sign_in_or_key: '请使用Google登录或输入Gemini API密钥',
+    session_expired: 'Google会话已过期，请重新登录。',
+    api_error: 'API错误 {s}: {e}',
+    copied: '已复制！',
+    google_setup: '请输入Google Cloud OAuth客户端ID\n\n步骤:\n1. 访问 console.cloud.google.com\n2. 创建OAuth 2.0客户端ID（Web应用）\n3. 将本页URL添加为已授权的JavaScript来源\n4. 启用"Generative Language API"\n5. 在下方粘贴客户端ID',
+    signed_in: '已登录',
+    load_failed: '加载样本失败: {e}',
+  },
+  ko: {
+    subtitle: 'PE 악성코드 분석기 — Rust + WebAssembly 기반',
+    drop_title: 'Windows 실행 파일을 여기에 드롭하세요',
+    drop_desc: '.exe/.dll 파일 지원 — 브라우저에서 완전히 실행 (업로드 없음)',
+    test_samples: '테스트 샘플:',
+    tag_clean: '정상',
+    tag_malware: '악성',
+    tag_benign: '무해',
+    analyzing: 'PE 구조 분석 중...',
+    stage1: '단계 1', stage2: '단계 2', stage3: '단계 3', final: '최종',
+    static_analysis: '정적 분석',
+    safety_check: '안전성 검사',
+    dynamic_analysis: '동적 분석',
+    verdict: '판정',
+    pending: '대기 중',
+    risk_assessment: '위험 평가',
+    file_info: '파일 정보',
+    ai_threat: 'AI 위협 분석',
+    sign_in_google: 'Google로 로그인',
+    sign_out: '로그아웃',
+    or_api_key: '또는 API 키 사용',
+    analyze_gemini: 'Gemini로 분석',
+    copy_prompt: '프롬프트 복사',
+    gemini_analyzing: 'Gemini가 위협을 분석 중...',
+    dynamic_x86: '동적 분석 (x86 에뮬레이션)',
+    run_sandbox: '샌드박스 실행',
+    emulating: 'x86 실행 에뮬레이트 중...',
+    api_summary: 'API 호출 요약',
+    api_trace: 'API 호출 추적',
+    suspicious_apis: '의심스러운 API 호출',
+    coverage: 'WINOXIDE 커버리지',
+    sections: '섹션',
+    imports: '임포트',
+    exports: '익스포트',
+    th_name: '이름', th_vaddr: '가상 주소', th_vsize: '가상 크기',
+    th_rsize: '실제 크기', th_flags: '플래그', th_status: '상태',
+    analyzing_status: '분석 중...',
+    complete: '완료',
+    evaluating: '평가 중...',
+    safe_to_sandbox: '샌드박스 가능',
+    emulating_status: '에뮬레이트 중...',
+    high_risk: '고위험',
+    too_risky: '위험 과다',
+    likely_malicious: '악성코드 가능성 높음',
+    missing_dlls: 'DLL 부족',
+    skipped: '건너뜀',
+    incomplete: '불완전',
+    suspicious_detected: '의심스러운 API {n}건 탐지',
+    filename: '파일명', size: '크기', machine: '머신', type: '유형',
+    bitness: '비트', subsystem: '서브시스템', entry_point: '진입점',
+    image_size: '이미지 크기',
+    n_sections: '섹션', n_imports: '임포트', n_exports: '익스포트',
+    funcs_from_dlls: '{d}개 DLL에서 {f}개 함수',
+    n_functions: '{n}개 함수',
+    resolved: '{r}/{t} 함수 해석됨 ({p}%)',
+    runnable: '실행 가능', partial: '부분적',
+    suspicious_label: '의심',
+    by_ordinal: '(서수)',
+    and_more: '... 외 {n}건',
+    dlls_funcs_summary: '{d}개 DLL, {f}개 함수',
+    confidence: '신뢰도',
+    steps_info: '{s}단계 | {a}개 API 호출 | {r}',
+    process_injection: '프로세스 인젝션',
+    anti_debug: '안티 디버그',
+    network_activity: '네트워크 활동',
+    crypto_operations: '암호화 연산',
+    self_modifying: '자기 수정 코드',
+    dynamic_api: '동적 API 해석',
+    file_io: '파일 I/O ({n})',
+    registry: '레지스트리 ({n})',
+    no_malicious: '악성 패턴 없음',
+    running: '실행 중...',
+    rerun_sandbox: '재실행',
+    wasm_loading: 'Wasm 엔진 로딩 중...',
+    not_valid_pe: '유효한 PE 파일이 아닙니다: {e}',
+    sign_in_or_key: 'Google 로그인 또는 Gemini API 키를 입력해 주세요',
+    session_expired: 'Google 세션이 만료되었습니다. 다시 로그인해 주세요.',
+    api_error: 'API 오류 {s}: {e}',
+    copied: '복사됨!',
+    google_setup: 'Google Cloud OAuth 클라이언트 ID를 입력하세요\n\n설정 단계:\n1. console.cloud.google.com 접속\n2. OAuth 2.0 클라이언트 ID 생성 (웹 애플리케이션)\n3. 이 페이지 URL을 승인된 JavaScript 출처에 추가\n4. "Generative Language API" 활성화\n5. 아래에 클라이언트 ID 붙여넣기',
+    signed_in: '로그인됨',
+    load_failed: '샘플 로드 실패: {e}',
+  },
+};
+
+let currentLang = localStorage.getItem('winoxide_lang') || 'en';
+
+function t(key, params) {
+  let str = (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      str = str.replace('{' + k + '}', v);
+    }
+  }
+  return str;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  // Update lang buttons
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === currentLang);
+  });
+  document.documentElement.lang = currentLang === 'ja' ? 'ja' : currentLang === 'zh' ? 'zh' : currentLang === 'ko' ? 'ko' : 'en';
+}
+
+window.setLang = function(lang) {
+  currentLang = lang;
+  localStorage.setItem('winoxide_lang', lang);
+  applyI18n();
+  // Re-render if results are visible
+  if (lastAnalysis && results.classList.contains('visible')) {
+    renderResults(lastAnalysis, lastFilename);
+  }
+};
+
+// Apply on load
+applyI18n();
+
+// ===== Wasm init =====
 let wasmReady = false;
 
 async function initWasm() {
@@ -659,7 +1069,7 @@ dropzone.addEventListener('drop', (e) => {
 let lastFileData = null;
 
 window.loadSample = async function(name) {
-  if (!wasmReady) { alert('Wasm engine loading...'); return; }
+  if (!wasmReady) { alert(t('wasm_loading')); return; }
   try {
     const resp = await fetch('samples/' + name);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -667,56 +1077,52 @@ window.loadSample = async function(name) {
     const file = new File([blob], name, { type: 'application/octet-stream' });
     processFile(file);
   } catch(e) {
-    alert('Failed to load sample: ' + e.message);
+    alert(t('load_failed', {e: e.message}));
   }
 }
 
 async function processFile(file) {
-  if (!wasmReady) { alert('Wasm engine loading...'); return; }
+  if (!wasmReady) { alert(t('wasm_loading')); return; }
 
   loading.style.display = 'block';
   results.classList.remove('visible');
   resetPipeline();
 
-  // Read file as array
   const buffer = await file.arrayBuffer();
   const data = new Uint8Array(buffer);
   lastFileData = data;
 
   // Stage 1: Static Analysis
-  updateStage('static', 'running', 'analyzing...');
+  updateStage('static', 'running', t('analyzing_status'));
   const json = analyze_pe(data);
   const analysis = JSON.parse(json);
 
   loading.style.display = 'none';
 
   if (!analysis.valid) {
-    alert('Not a valid PE file: ' + (analysis.error || 'unknown error'));
+    alert(t('not_valid_pe', {e: analysis.error || 'unknown'}));
     return;
   }
 
-  updateStage('static', 'done', 'complete');
+  updateStage('static', 'done', t('complete'));
   renderResults(analysis, file.name);
 
   // Stage 2: Safety Check
-  updateStage('safety', 'running', 'evaluating...');
+  updateStage('safety', 'running', t('evaluating'));
   const safeForDynamic = analysis.risk_score <= 80 && analysis.is_runnable;
   if (safeForDynamic) {
-    updateStage('safety', 'done', 'safe to sandbox');
-    // Auto-run dynamic analysis
-    updateStage('dynamic', 'running', 'emulating...');
+    updateStage('safety', 'done', t('safe_to_sandbox'));
+    updateStage('dynamic', 'running', t('emulating_status'));
     document.getElementById('dynamic-card').style.display = 'block';
     document.getElementById('dynamic-body').style.display = 'block';
     document.getElementById('dynamic-loading').style.display = 'block';
 
-    // Use setTimeout to let UI update before blocking Wasm call
     setTimeout(() => {
       const dynJson = analyze_dynamic(data, 50000);
       const dynResult = JSON.parse(dynJson);
       document.getElementById('dynamic-loading').style.display = 'none';
       renderDynamic(dynResult);
       updateStage('dynamic', 'done', dynResult.steps_executed + ' steps');
-      // Stage 4: Final Verdict
       const finalVerdict = dynResult.dynamic_risk_score <= 20 ? 'CLEAN' :
                            dynResult.dynamic_risk_score <= 50 ? 'SUSPICIOUS' : 'MALICIOUS';
       const verdictClass = finalVerdict === 'CLEAN' ? 'done' :
@@ -725,15 +1131,14 @@ async function processFile(file) {
     }, 50);
   } else {
     if (analysis.risk_score > 80) {
-      updateStage('safety', 'danger', 'HIGH RISK');
-      updateStage('dynamic', 'warning', 'too risky');
-      updateStage('verdict', 'danger', 'LIKELY MALICIOUS');
+      updateStage('safety', 'danger', t('high_risk'));
+      updateStage('dynamic', 'warning', t('too_risky'));
+      updateStage('verdict', 'danger', t('likely_malicious'));
     } else {
-      updateStage('safety', 'warning', 'missing DLLs');
-      updateStage('dynamic', 'warning', 'skipped');
-      updateStage('verdict', 'warning', 'INCOMPLETE');
+      updateStage('safety', 'warning', t('missing_dlls'));
+      updateStage('dynamic', 'warning', t('skipped'));
+      updateStage('verdict', 'warning', t('incomplete'));
     }
-    // Still show dynamic analysis button for manual trigger
     document.getElementById('dynamic-card').style.display = 'block';
     document.getElementById('dynamic-body').style.display = 'none';
   }
@@ -743,7 +1148,7 @@ function resetPipeline() {
   for (const id of ['static', 'safety', 'dynamic', 'verdict']) {
     const el = document.getElementById('stage-' + id);
     el.className = 'pipeline-stage';
-    document.getElementById('stage-' + id + '-status').textContent = 'pending';
+    document.getElementById('stage-' + id + '-status').textContent = t('pending');
   }
   document.getElementById('dynamic-card').style.display = 'none';
 }
@@ -768,23 +1173,23 @@ function renderResults(a, filename) {
   document.getElementById('risk-label').textContent = a.risk_level;
   document.getElementById('risk-label').className = 'risk-label';
   document.getElementById('risk-detail').textContent =
-    a.suspicious_imports.length + ' suspicious API(s) detected';
+    t('suspicious_detected', {n: a.suspicious_imports.length});
 
   // File info
   const grid = document.getElementById('info-grid');
   grid.innerHTML = '';
   const items = [
-    ['Filename', filename],
-    ['Size', formatSize(a.file_size)],
-    ['Machine', a.machine],
-    ['Type', a.is_dll ? 'DLL' : 'EXE'],
-    ['Bitness', a.is_64bit ? '64-bit' : '32-bit'],
-    ['Subsystem', a.subsystem],
-    ['Entry Point', '0x' + a.entry_point.toString(16).padStart(8, '0')],
-    ['Image Size', formatSize(a.image_size)],
-    ['Sections', a.sections.length],
-    ['Imports', a.total_import_functions + ' functions from ' + a.total_import_dlls + ' DLLs'],
-    ['Exports', a.exports.length + ' functions'],
+    [t('filename'), filename],
+    [t('size'), formatSize(a.file_size)],
+    [t('machine'), a.machine],
+    [t('type'), a.is_dll ? 'DLL' : 'EXE'],
+    [t('bitness'), a.is_64bit ? '64-bit' : '32-bit'],
+    [t('subsystem'), a.subsystem],
+    [t('entry_point'), '0x' + a.entry_point.toString(16).padStart(8, '0')],
+    [t('image_size'), formatSize(a.image_size)],
+    [t('n_sections'), a.sections.length],
+    [t('n_imports'), t('funcs_from_dlls', {f: a.total_import_functions, d: a.total_import_dlls})],
+    [t('n_exports'), t('n_functions', {n: a.exports.length})],
   ];
   for (const [label, value] of items) {
     grid.innerHTML += `<div class="info-item"><div class="label">${label}</div><div class="value">${value}</div></div>`;
@@ -812,7 +1217,7 @@ function renderResults(a, filename) {
   // Coverage
   const covPct = a.coverage_percent.toFixed(1);
   document.getElementById('coverage-text').textContent =
-    `${a.resolved_functions}/${a.total_import_functions} functions resolved (${covPct}%)`;
+    t('resolved', {r: a.resolved_functions, t: a.total_import_functions, p: covPct});
   const covBar = document.getElementById('coverage-bar');
   covBar.style.width = covPct + '%';
   covBar.style.background = a.coverage_percent >= 80 ? 'var(--green)' :
@@ -820,8 +1225,8 @@ function renderResults(a, filename) {
   covBar.textContent = covPct + '%';
   const runnableBadge = document.getElementById('runnable-badge');
   runnableBadge.innerHTML = a.is_runnable
-    ? '<span style="color:var(--green)">&#10003; RUNNABLE</span>'
-    : '<span style="color:var(--dim)">&#10007; PARTIAL</span>';
+    ? `<span style="color:var(--green)">&#10003; ${t('runnable')}</span>`
+    : `<span style="color:var(--dim)">&#10007; ${t('partial')}</span>`;
 
   // Sections
   const stbody = document.getElementById('sections-tbody');
@@ -834,7 +1239,7 @@ function renderResults(a, filename) {
       <td>${formatSize(s.virtual_size)}</td>
       <td>${formatSize(s.raw_size)}</td>
       <td>${s.flags}</td>
-      <td>${s.suspicious ? '&#9888; Suspicious' : '&#10003;'}</td>
+      <td>${s.suspicious ? '&#9888; ' + t('suspicious_label') : '&#10003;'}</td>
     </tr>`;
   }
 
@@ -842,7 +1247,7 @@ function renderResults(a, filename) {
   const impList = document.getElementById('imports-list');
   impList.innerHTML = '';
   document.getElementById('import-summary').textContent =
-    `${a.total_import_dlls} DLLs, ${a.total_import_functions} functions`;
+    t('dlls_funcs_summary', {d: a.total_import_dlls, f: a.total_import_functions});
   for (const imp of a.imports) {
     const id = 'imp-' + imp.dll.replace(/[^a-zA-Z0-9]/g, '_');
     impList.innerHTML += `<div class="import-dll" onclick="document.getElementById('${id}').classList.toggle('open')">
@@ -863,12 +1268,12 @@ function renderResults(a, filename) {
       const e = a.exports[i];
       etbody.innerHTML += `<tr>
         <td>${e.ordinal}</td>
-        <td>${e.name || '(by ordinal)'}</td>
+        <td>${e.name || t('by_ordinal')}</td>
         <td>0x${e.rva.toString(16)}</td>
       </tr>`;
     }
     if (a.exports.length > 50) {
-      etbody.innerHTML += `<tr><td colspan="3" style="color:var(--dim)">... and ${a.exports.length - 50} more</td></tr>`;
+      etbody.innerHTML += `<tr><td colspan="3" style="color:var(--dim)">${t('and_more', {n: a.exports.length - 50})}</td></tr>`;
     }
   } else {
     expCard.style.display = 'none';
@@ -883,10 +1288,9 @@ function formatSize(bytes) {
 
 // ===== Dynamic Analysis Rendering =====
 function renderDynamic(d) {
-  // Verdict banner
   const banner = document.getElementById('dynamic-verdict-banner');
   banner.style.display = 'block';
-  banner.textContent = d.verdict + ` (confidence: ${d.confidence}%)`;
+  banner.textContent = d.verdict + ` (${t('confidence')}: ${d.confidence}%)`;
   if (d.dynamic_risk_score <= 20) {
     banner.style.background = 'rgba(102,187,106,0.1)';
     banner.style.color = 'var(--green)';
@@ -901,24 +1305,23 @@ function renderDynamic(d) {
     banner.style.border = '1px solid rgba(239,83,80,0.3)';
   }
 
-  // Steps info
   document.getElementById('dynamic-steps').textContent =
-    `${d.steps_executed.toLocaleString()} steps | ${d.api_calls.length} API calls | ${d.stop_reason}`;
+    t('steps_info', {s: d.steps_executed.toLocaleString(), a: d.api_calls.length, r: d.stop_reason});
 
   // Behavior tags
   const tags = document.getElementById('behavior-tags');
   tags.innerHTML = '';
   const b = d.behavior;
-  if (b.process_injection) tags.innerHTML += '<span class="behavior-tag danger">Process Injection</span>';
-  if (b.anti_debug) tags.innerHTML += '<span class="behavior-tag warning">Anti-Debug</span>';
-  if (b.network_activity) tags.innerHTML += '<span class="behavior-tag danger">Network Activity</span>';
-  if (b.crypto_operations) tags.innerHTML += '<span class="behavior-tag warning">Crypto Operations</span>';
-  if (b.self_modifying_code) tags.innerHTML += '<span class="behavior-tag danger">Self-Modifying Code</span>';
-  if (b.dynamic_api_resolution) tags.innerHTML += '<span class="behavior-tag warning">Dynamic API Resolution</span>';
-  if (b.file_operations.length > 0) tags.innerHTML += '<span class="behavior-tag info">File I/O (' + b.file_operations.length + ')</span>';
-  if (b.registry_operations.length > 0) tags.innerHTML += '<span class="behavior-tag warning">Registry (' + b.registry_operations.length + ')</span>';
+  if (b.process_injection) tags.innerHTML += `<span class="behavior-tag danger">${t('process_injection')}</span>`;
+  if (b.anti_debug) tags.innerHTML += `<span class="behavior-tag warning">${t('anti_debug')}</span>`;
+  if (b.network_activity) tags.innerHTML += `<span class="behavior-tag danger">${t('network_activity')}</span>`;
+  if (b.crypto_operations) tags.innerHTML += `<span class="behavior-tag warning">${t('crypto_operations')}</span>`;
+  if (b.self_modifying_code) tags.innerHTML += `<span class="behavior-tag danger">${t('self_modifying')}</span>`;
+  if (b.dynamic_api_resolution) tags.innerHTML += `<span class="behavior-tag warning">${t('dynamic_api')}</span>`;
+  if (b.file_operations.length > 0) tags.innerHTML += `<span class="behavior-tag info">${t('file_io', {n: b.file_operations.length})}</span>`;
+  if (b.registry_operations.length > 0) tags.innerHTML += `<span class="behavior-tag warning">${t('registry', {n: b.registry_operations.length})}</span>`;
   if (!b.process_injection && !b.network_activity && !b.crypto_operations && !b.self_modifying_code) {
-    tags.innerHTML += '<span class="behavior-tag safe">No Malicious Patterns</span>';
+    tags.innerHTML += `<span class="behavior-tag safe">${t('no_malicious')}</span>`;
   }
 
   // API summary
@@ -948,7 +1351,7 @@ function renderDynamic(d) {
       </div>`;
     }
     if (d.api_calls.length > 200) {
-      traceList.innerHTML += `<div class="api-trace-item" style="color:var(--dim)">... and ${d.api_calls.length - 200} more calls</div>`;
+      traceList.innerHTML += `<div class="api-trace-item" style="color:var(--dim)">${t('and_more', {n: d.api_calls.length - 200})}</div>`;
     }
   }
 }
@@ -958,11 +1361,11 @@ window.runDynamicAnalysis = function() {
   if (!lastFileData) return;
   const btn = document.getElementById('run-dynamic-btn');
   btn.disabled = true;
-  btn.textContent = 'Running...';
+  btn.textContent = t('running');
   document.getElementById('dynamic-body').style.display = 'block';
   document.getElementById('dynamic-loading').style.display = 'block';
 
-  updateStage('dynamic', 'running', 'emulating...');
+  updateStage('dynamic', 'running', t('emulating_status'));
 
   setTimeout(() => {
     const dynJson = analyze_dynamic(lastFileData, 50000);
@@ -978,7 +1381,7 @@ window.runDynamicAnalysis = function() {
     updateStage('verdict', verdictClass, finalVerdict);
 
     btn.disabled = false;
-    btn.textContent = 'Re-run Sandbox';
+    btn.textContent = t('rerun_sandbox');
   }, 50);
 };
 
@@ -986,10 +1389,8 @@ window.runDynamicAnalysis = function() {
 let googleAccessToken = null;
 let tokenClient = null;
 
-// Initialize Google Identity Services token client
 function initGoogleAuth() {
   if (typeof google === 'undefined' || !google.accounts) {
-    // GIS library not loaded yet, retry
     setTimeout(initGoogleAuth, 500);
     return;
   }
@@ -1001,7 +1402,7 @@ function initGoogleAuth() {
         googleAccessToken = response.access_token;
         document.getElementById('google-signin-btn').style.display = 'none';
         document.getElementById('google-user').style.display = 'inline';
-        document.getElementById('google-user').textContent = 'Signed in';
+        document.getElementById('google-user').textContent = t('signed_in');
         document.getElementById('google-signout-btn').style.display = 'inline';
         document.getElementById('apikey-fallback').style.display = 'none';
       }
@@ -1009,20 +1410,11 @@ function initGoogleAuth() {
   });
 }
 
-// Read client ID from config or use placeholder
 const GOOGLE_CLIENT_ID = localStorage.getItem('winoxide_google_client_id') || '';
 
 window.googleSignIn = function() {
   if (!GOOGLE_CLIENT_ID) {
-    const clientId = prompt(
-      'Enter your Google Cloud OAuth Client ID\n\n' +
-      'Setup steps:\n' +
-      '1. Go to console.cloud.google.com\n' +
-      '2. Create OAuth 2.0 Client ID (Web application)\n' +
-      '3. Add this page URL as Authorized JavaScript Origin\n' +
-      '4. Enable "Generative Language API"\n' +
-      '5. Paste the Client ID below'
-    );
+    const clientId = prompt(t('google_setup'));
     if (clientId) {
       localStorage.setItem('winoxide_google_client_id', clientId);
       location.reload();
@@ -1048,7 +1440,6 @@ window.googleSignOut = function() {
   document.getElementById('apikey-fallback').style.display = 'block';
 };
 
-// Auto-init if client ID is configured
 if (GOOGLE_CLIENT_ID) {
   initGoogleAuth();
 }
@@ -1057,7 +1448,6 @@ if (GOOGLE_CLIENT_ID) {
 let lastAnalysis = null;
 let lastFilename = null;
 
-// Store analysis data for AI
 const origRender = renderResults;
 renderResults = function(a, filename) {
   lastAnalysis = a;
@@ -1080,6 +1470,7 @@ function buildAiPrompt(a, filename) {
     `  ${imp.dll} (${imp.count} functions): ${imp.functions.slice(0,10).join(', ')}${imp.count > 10 ? '...' : ''}`
   ).join('\n');
 
+  // AI prompt always in English for best results
   return `You are a malware analyst. Analyze this Windows PE executable based on its static analysis data from Winoxide (a Rust-based PE analyzer running in WebAssembly).
 
 FILE: ${filename}
@@ -1099,6 +1490,7 @@ ${a.suspicious_imports.length > 0 ? `SUSPICIOUS APIs DETECTED:\n${suspList}` : '
 
 ${a.exports.length > 0 ? `EXPORTS: ${a.exports.length} functions (first 5: ${a.exports.slice(0,5).map(e => e.name || '#'+e.ordinal).join(', ')})` : 'NO EXPORTS'}
 
+Please respond in ${currentLang === 'ja' ? 'Japanese' : currentLang === 'zh' ? 'Chinese' : currentLang === 'ko' ? 'Korean' : 'English'}.
 Please provide:
 1. **Verdict**: CLEAN / SUSPICIOUS / LIKELY MALICIOUS — with confidence level
 2. **Summary**: 2-3 sentence overview of what this binary likely does
@@ -1109,19 +1501,17 @@ Please provide:
 Respond in a structured format. Be specific about which APIs and patterns led to your conclusions.`;
 }
 
-// Copy prompt to clipboard
 window.copyForAi = function() {
   if (!lastAnalysis) return;
   const prompt = buildAiPrompt(lastAnalysis, lastFilename);
   navigator.clipboard.writeText(prompt).then(() => {
     const btn = document.querySelector('[onclick="copyForAi()"]');
     const orig = btn.textContent;
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = orig, 2000);
+    btn.textContent = t('copied');
+    setTimeout(() => btn.textContent = t('copy_prompt'), 2000);
   });
 };
 
-// Call Gemini API (supports both OAuth token and API key)
 window.runAiAnalysis = async function() {
   if (!lastAnalysis) return;
 
@@ -1130,7 +1520,7 @@ window.runAiAnalysis = async function() {
   const hasApiKey = !!apiKey;
 
   if (!hasOAuth && !hasApiKey) {
-    alert('Sign in with Google or enter a Gemini API key to use AI analysis');
+    alert(t('sign_in_or_key'));
     return;
   }
 
@@ -1140,7 +1530,7 @@ window.runAiAnalysis = async function() {
   const outputDiv = document.getElementById('ai-output');
 
   btn.disabled = true;
-  btn.textContent = 'Analyzing...';
+  btn.textContent = t('running');
   resultDiv.style.display = 'block';
   loadingDiv.style.display = 'block';
   outputDiv.innerHTML = '';
@@ -1150,14 +1540,12 @@ window.runAiAnalysis = async function() {
   try {
     let endpoint, headers;
     if (hasOAuth) {
-      // Use OAuth access token (no API key needed)
       endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
       headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${googleAccessToken}`,
       };
     } else {
-      // Fallback: use API key
       endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
       headers = { 'Content-Type': 'application/json' };
     }
@@ -1177,14 +1565,13 @@ window.runAiAnalysis = async function() {
     if (!response.ok) {
       const err = await response.text();
       if (response.status === 401 && hasOAuth) {
-        // Token expired, prompt re-auth
         googleAccessToken = null;
         document.getElementById('google-signin-btn').style.display = 'flex';
         document.getElementById('google-user').style.display = 'none';
         document.getElementById('google-signout-btn').style.display = 'none';
-        throw new Error('Google session expired. Please sign in again.');
+        throw new Error(t('session_expired'));
       }
-      throw new Error(`API error ${response.status}: ${err}`);
+      throw new Error(t('api_error', {s: response.status, e: err}));
     }
 
     const data = await response.json();
@@ -1196,16 +1583,15 @@ window.runAiAnalysis = async function() {
     loadingDiv.style.display = 'none';
     outputDiv.innerHTML = `<div style="color:var(--red)">Error: ${err.message}</div>
       <div style="color:var(--dim); margin-top:8px; font-size:12px">
-        ${hasOAuth ? 'Try signing out and back in, or ' : ''}Get a free API key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a>
+        ${hasOAuth ? t('sign_out') + ' → ' : ''}Get a free API key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a>
       </div>`;
   }
 
   btn.disabled = false;
-  btn.textContent = 'Analyze with Gemini';
+  btn.textContent = t('analyze_gemini');
 };
 
 function formatAiOutput(text) {
-  // Basic markdown-like formatting
   let html = text
     .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text)">$1</strong>')
     .replace(/`(.*?)`/g, '<code style="background:var(--code-bg); padding:1px 4px; border-radius:3px">$1</code>')
@@ -1217,7 +1603,6 @@ function formatAiOutput(text) {
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>');
 
-  // Highlight verdict keywords
   html = html.replace(/CLEAN/g, '<span style="color:var(--green); font-weight:700">CLEAN</span>');
   html = html.replace(/SUSPICIOUS/g, '<span style="color:var(--orange); font-weight:700">SUSPICIOUS</span>');
   html = html.replace(/LIKELY MALICIOUS/g, '<span style="color:var(--red); font-weight:700">LIKELY MALICIOUS</span>');

@@ -7,8 +7,9 @@ use std::io::Write;
 fn main() {
     generate_hello_exe();
     generate_suspicious_exe();
+    generate_stealth_exe();
     generate_clean_dll();
-    println!("Done! Generated 3 sample PE files in web/samples/");
+    println!("Done! Generated 4 sample PE files in web/samples/");
 }
 
 /// Helper to write LE u16
@@ -488,6 +489,193 @@ fn generate_suspicious_exe() {
     let mut f = std::fs::File::create("web/samples/suspicious.exe").unwrap();
     f.write_all(&pe).unwrap();
     println!("  [+] suspicious.exe ({} bytes) - Process injection + network + crypto + W^X section", pe.len());
+}
+
+/// stealth.exe — looks benign statically (MEDIUM ~25) but triggers dynamic behavioral flags (HIGH ~65)
+/// Imports are individually innocent but combine to reveal suspicious behavior during emulation.
+fn generate_stealth_exe() {
+    let mut code = Vec::new();
+
+    // push ebp; mov ebp, esp; sub esp, 64
+    code.extend_from_slice(&[0x55, 0x89, 0xE5, 0x83, 0xEC, 0x40]);
+
+    // --- Call OutputDebugStringA (anti-debug pattern) ---
+    // lea eax, [ebp-16] ; dummy string pointer
+    code.extend_from_slice(&[0x8D, 0x45, 0xF0]);
+    // push eax
+    code.push(0x50);
+    // call [OutputDebugStringA IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_output_debug = code.len();
+    code.extend_from_slice(&[0x00; 4]); // placeholder
+
+    // --- Call LoadLibraryA + GetProcAddress (dynamic API resolution) ---
+    // push 0 (dummy arg)
+    code.extend_from_slice(&[0x6A, 0x00]);
+    // call [LoadLibraryA IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_loadlib = code.len();
+    code.extend_from_slice(&[0x00; 4]);
+
+    // push eax; push 0
+    code.extend_from_slice(&[0x50, 0x6A, 0x00]);
+    // call [GetProcAddress IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_getproc = code.len();
+    code.extend_from_slice(&[0x00; 4]);
+
+    // --- Call WSAStartup (network activity) ---
+    // push 0; push 0x0202 (version 2.2)
+    code.extend_from_slice(&[0x6A, 0x00, 0x68, 0x02, 0x02, 0x00, 0x00]);
+    // call [WSAStartup IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_wsa = code.len();
+    code.extend_from_slice(&[0x00; 4]);
+
+    // --- Call CreateFileA + WriteFile (file operations) ---
+    // push multiple args for CreateFileA (7 args)
+    for _ in 0..7 { code.extend_from_slice(&[0x6A, 0x00]); }
+    // call [CreateFileA IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_createfile = code.len();
+    code.extend_from_slice(&[0x00; 4]);
+
+    // push args for WriteFile (5 args)
+    for _ in 0..5 { code.extend_from_slice(&[0x6A, 0x00]); }
+    // call [WriteFile IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_writefile = code.len();
+    code.extend_from_slice(&[0x00; 4]);
+
+    // --- Call RegOpenKeyExA + RegQueryValueExA (registry operations) ---
+    // push args for RegOpenKeyExA (5 args)
+    for _ in 0..5 { code.extend_from_slice(&[0x6A, 0x00]); }
+    // call [RegOpenKeyExA IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_regopen = code.len();
+    code.extend_from_slice(&[0x00; 4]);
+
+    // push args for RegQueryValueExA (6 args)
+    for _ in 0..6 { code.extend_from_slice(&[0x6A, 0x00]); }
+    // call [RegQueryValueExA IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_regquery = code.len();
+    code.extend_from_slice(&[0x00; 4]);
+
+    // --- Call ExitProcess(0) ---
+    code.extend_from_slice(&[0x6A, 0x00]);
+    // call [ExitProcess IAT]
+    code.extend_from_slice(&[0xFF, 0x15]);
+    let fixup_exit = code.len();
+    code.extend_from_slice(&[0x00; 4]);
+
+    // leave; ret
+    code.extend_from_slice(&[0xC9, 0xC3]);
+
+    let imports = vec![
+        ImportDef {
+            dll: "KERNEL32.dll".into(),
+            functions: vec![
+                "GetStdHandle".into(),
+                "WriteConsoleA".into(),
+                "ExitProcess".into(),
+                "VirtualAlloc".into(),
+                "VirtualProtect".into(),
+                "GetProcAddress".into(),
+                "LoadLibraryA".into(),
+                "CreateFileA".into(),
+                "WriteFile".into(),
+                "CloseHandle".into(),
+                "OutputDebugStringA".into(),
+                "Sleep".into(),
+            ],
+        },
+        ImportDef {
+            dll: "WS2_32.dll".into(),
+            functions: vec![
+                "WSAStartup".into(),
+            ],
+        },
+        ImportDef {
+            dll: "ADVAPI32.dll".into(),
+            functions: vec![
+                "RegOpenKeyExA".into(),
+                "RegQueryValueExA".into(),
+                "RegCloseKey".into(),
+            ],
+        },
+    ];
+
+    let pe = build_pe32(
+        &[SectionDef {
+            name: ".text".into(),
+            data: code.clone(),
+            characteristics: 0x60000020, // CODE|EXECUTE|READ (normal, no W+X)
+        },
+        SectionDef {
+            name: ".data".into(),
+            data: vec![0; 128],
+            characteristics: 0xC0000040, // INITIALIZED_DATA|READ|WRITE (normal)
+        }],
+        &imports,
+        0x1000,
+        false,
+        3, // WINDOWS_CUI
+    );
+
+    // Fix up IAT addresses in the code
+    // .idata section at VA 0x3000 (after .text@0x1000, .data@0x2000)
+    // 4 descriptors (3 DLLs + null) = 80 bytes
+    // ILT: 12+1+3+1+3+1 = 21 entries * 4 = 84 bytes (with null terminators: 13+2+4 = 19 terms, but let's calc properly)
+    // kernel32: 12 funcs + 1 null = 52 bytes ILT
+    // ws2_32: 1 func + 1 null = 8 bytes ILT
+    // advapi32: 3 funcs + 1 null = 16 bytes ILT
+    // Total ILT: 76 bytes
+    // IAT starts at: 80 (descs) + 76 (ILT) = 156
+    let idata_va: u32 = 0x3000;
+    let desc_size: u32 = 80; // 4 descriptors * 20
+    let ilt_size: u32 = 76; // (12+1 + 1+1 + 3+1) * 4
+    let iat_start = idata_va + desc_size + ilt_size;
+    let image_base: u32 = 0x00400000;
+
+    // IAT layout:
+    // kernel32 functions (12): indices 0-11
+    //   0: GetStdHandle, 1: WriteConsoleA, 2: ExitProcess, 3: VirtualAlloc,
+    //   4: VirtualProtect, 5: GetProcAddress, 6: LoadLibraryA, 7: CreateFileA,
+    //   8: WriteFile, 9: CloseHandle, 10: OutputDebugStringA, 11: Sleep
+    // [null terminator]
+    // ws2_32 functions (1): index 13
+    //   13: WSAStartup
+    // [null terminator]
+    // advapi32 functions (3): indices 15-17
+    //   15: RegOpenKeyExA, 16: RegQueryValueExA, 17: RegCloseKey
+
+    let mut pe = pe;
+    let code_file_offset = 0x200; // .text raw data starts at file offset 0x200
+
+    let iat_addr = |idx: u32| -> u32 { image_base + iat_start + idx * 4 };
+
+    let fixups: Vec<(usize, u32)> = vec![
+        (fixup_output_debug, iat_addr(10)),  // OutputDebugStringA
+        (fixup_loadlib, iat_addr(6)),         // LoadLibraryA
+        (fixup_getproc, iat_addr(5)),         // GetProcAddress
+        (fixup_wsa, iat_addr(13)),            // WSAStartup (after kernel32's 12 + null)
+        (fixup_createfile, iat_addr(7)),      // CreateFileA
+        (fixup_writefile, iat_addr(8)),       // WriteFile
+        (fixup_regopen, iat_addr(15)),        // RegOpenKeyExA (after ws2_32's 1 + null)
+        (fixup_regquery, iat_addr(16)),       // RegQueryValueExA
+        (fixup_exit, iat_addr(2)),            // ExitProcess
+    ];
+
+    for (offset, addr) in fixups {
+        pe[code_file_offset + offset..code_file_offset + offset + 4]
+            .copy_from_slice(&addr.to_le_bytes());
+    }
+
+    std::fs::create_dir_all("web/samples").unwrap();
+    let mut f = std::fs::File::create("web/samples/stealth.exe").unwrap();
+    f.write_all(&pe).unwrap();
+    println!("  [+] stealth.exe ({} bytes) - Looks benign statically, triggers behavioral flags dynamically", pe.len());
 }
 
 /// clean.dll — a normal DLL with benign exports

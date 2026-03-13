@@ -427,7 +427,23 @@
   }
   .sample-btn .tag.clean { background: rgba(102,187,106,0.2); color: var(--green); }
   .sample-btn .tag.suspicious { background: rgba(239,83,80,0.2); color: var(--red); }
+  .sample-btn .tag.stealth { background: rgba(255,152,0,0.2); color: var(--orange); }
   .sample-btn .tag.benign { background: rgba(79,195,247,0.2); color: var(--accent); }
+
+  /* Info banner */
+  .info-banner {
+    background: rgba(79,195,247,0.06);
+    border: 1px solid rgba(79,195,247,0.15);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--dim);
+  }
+  .info-banner strong { color: var(--text); }
+  .info-banner .highlight { color: var(--green); font-weight: 600; }
+  .info-banner .accent { color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -458,9 +474,17 @@
     <button class="sample-btn" onclick="loadSample('suspicious.exe')">
       suspicious.exe <span class="tag suspicious" data-i18n="tag_malware">malware</span>
     </button>
+    <button class="sample-btn" onclick="loadSample('stealth.exe')">
+      stealth.exe <span class="tag stealth" data-i18n="tag_stealth">stealth</span>
+    </button>
     <button class="sample-btn" onclick="loadSample('clean.dll')">
       clean.dll <span class="tag benign" data-i18n="tag_benign">benign</span>
     </button>
+  </div>
+
+  <div class="info-banner" data-i18n-html="info_banner">
+    <strong>&#x1F6E1; Safe sandbox:</strong> All analysis runs <span class="highlight">entirely in your browser</span> using WebAssembly — no files are uploaded, no server involved.<br>
+    <strong>&#x1F916; Free AI analysis:</strong> Sign in with Google to use <span class="accent">Gemini AI</span> for threat analysis — <span class="highlight">completely free</span>, using your own Google account.
   </div>
 
   <div class="loading" id="loading" style="display:none">
@@ -667,7 +691,9 @@ const I18N = {
     test_samples: 'Test samples:',
     tag_clean: 'clean',
     tag_malware: 'malware',
+    tag_stealth: 'stealth',
     tag_benign: 'benign',
+    info_banner: '<strong>&#x1F6E1; Safe sandbox:</strong> All analysis runs <span class="highlight">entirely in your browser</span> using WebAssembly — no files are uploaded, no server involved.<br><strong>&#x1F916; Free AI analysis:</strong> Sign in with Google to use <span class="accent">Gemini AI</span> for threat analysis — <span class="highlight">completely free</span>, using your own Google account.',
     analyzing: 'Analyzing PE structure...',
     stage1: 'Stage 1', stage2: 'Stage 2', stage3: 'Stage 3', final: 'Final',
     static_analysis: 'Static Analysis',
@@ -751,7 +777,9 @@ const I18N = {
     test_samples: 'テストサンプル:',
     tag_clean: '正常',
     tag_malware: 'マルウェア',
+    tag_stealth: 'ステルス',
     tag_benign: '無害',
+    info_banner: '<strong>&#x1F6E1; 安全なサンドボックス:</strong> すべての解析は<span class="highlight">ブラウザ内の隔離環境</span>でWebAssemblyにより実行されます。ファイルのアップロードやサーバー通信は一切ありません。<br><strong>&#x1F916; 無料AI分析:</strong> Googleアカウントでログインするだけで、<span class="accent">Gemini AI</span>による脅威分析が<span class="highlight">完全無料</span>で利用できます。',
     analyzing: 'PE構造を解析中...',
     stage1: 'ステージ1', stage2: 'ステージ2', stage3: 'ステージ3', final: '最終',
     static_analysis: '静的解析',
@@ -834,7 +862,9 @@ const I18N = {
     test_samples: '测试样本:',
     tag_clean: '正常',
     tag_malware: '恶意',
+    tag_stealth: '隐蔽',
     tag_benign: '无害',
+    info_banner: '<strong>&#x1F6E1; 安全沙箱:</strong> 所有分析均在<span class="highlight">浏览器隔离环境</span>中通过WebAssembly运行，无需上传文件，无服务器参与。<br><strong>&#x1F916; 免费AI分析:</strong> 使用Google账号登录即可使用<span class="accent">Gemini AI</span>进行威胁分析 — <span class="highlight">完全免费</span>。',
     analyzing: '正在分析PE结构...',
     stage1: '阶段1', stage2: '阶段2', stage3: '阶段3', final: '最终',
     static_analysis: '静态分析',
@@ -917,7 +947,9 @@ const I18N = {
     test_samples: '테스트 샘플:',
     tag_clean: '정상',
     tag_malware: '악성',
+    tag_stealth: '스텔스',
     tag_benign: '무해',
+    info_banner: '<strong>&#x1F6E1; 안전한 샌드박스:</strong> 모든 분석은 <span class="highlight">브라우저 격리 환경</span>에서 WebAssembly로 실행됩니다. 파일 업로드나 서버 통신이 없습니다.<br><strong>&#x1F916; 무료 AI 분석:</strong> Google 계정으로 로그인하면 <span class="accent">Gemini AI</span> 위협 분석을 <span class="highlight">완전 무료</span>로 이용할 수 있습니다.',
     analyzing: 'PE 구조 분석 중...',
     stage1: '단계 1', stage2: '단계 2', stage3: '단계 3', final: '최종',
     static_analysis: '정적 분석',
@@ -995,7 +1027,17 @@ const I18N = {
   },
 };
 
-let currentLang = localStorage.getItem('winoxide_lang') || 'en';
+// Auto-detect language from browser, fallback to 'en'
+function detectLang() {
+  const stored = localStorage.getItem('winoxide_lang');
+  if (stored) return stored;
+  const nav = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  if (nav.startsWith('ja')) return 'ja';
+  if (nav.startsWith('zh')) return 'zh';
+  if (nav.startsWith('ko')) return 'ko';
+  return 'en';
+}
+let currentLang = detectLang();
 
 function t(key, params) {
   let str = (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
@@ -1011,6 +1053,11 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     el.textContent = t(key);
+  });
+  // HTML translations (for banners with markup)
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    el.innerHTML = t(key);
   });
   // Update lang buttons
   document.querySelectorAll('.lang-btn').forEach(btn => {
